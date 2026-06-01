@@ -1,0 +1,62 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: rift-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:80}
+      - DEBUG=${DEBUG:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - MAX_ITERATIONS=${MAX_ITERATIONS:-5}
+      - DATABASE_URL=sqlite:///app/data/rift_agent.db
+      - CHROMA_DB_PATH=/app/data/chroma_db
+    volumes:
+      - backend-data:/app/data
+      - /tmp/rift-repos:/tmp/rift-repos
+      - /tmp/rift-results:/tmp/rift-results
+      - /tmp/rift-reports:/tmp/rift-reports
+    networks:
+      - rift-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: rift-devops-agent/docker/Dockerfile.frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+    container_name: rift-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - rift-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  backend-data:
+    driver: local
+
+networks:
+  rift-network:
+    driver: bridge

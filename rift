@@ -1,0 +1,14 @@
+# API Keys and Secrets
+.env
+
+# Python Cache
+__pycache__/
+
+# Virtual Environments
+venv/
+env/
+
+# Large AI Model Weights
+*.pt
+*.bin
+*.gguf

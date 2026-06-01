@@ -1,0 +1,11 @@
+"""
+Kubernetes Namespace for RIFT DevOps Agent
+"""
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rift-devops-agent
+  labels:
+    app: rift-devops-agent
+    version: v1
