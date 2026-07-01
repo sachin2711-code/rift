@@ -4,9 +4,9 @@ Configuration settings for the RIFT DevOps Agent
 
 import os
 from functools import lru_cache
-from typing import Optional, List, Union
+from typing import Optional, List
 
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -59,27 +59,33 @@ class Settings(BaseSettings):
     DISCORD_WEBHOOK_URL: str = Field(default="", env="DISCORD_WEBHOOK_URL")
 
     # CORS
-    # Accepts either a JSON array ("[\"https://a.com\",\"https://b.com\"]")
-    # OR a plain comma-separated string ("https://a.com,https://b.com"),
-    # since Render env vars are easiest to set as comma-separated.
-    CORS_ORIGINS: List[str] = Field(default=["*"], env="CORS_ORIGINS")
+    # IMPORTANT: kept as a plain str, NOT List[str]. pydantic-settings treats
+    # list-typed fields as "complex types" and tries to JSON-decode the raw
+    # env string at the source level, BEFORE any field_validator ever runs.
+    # That means a plain value like "http://localhost:5173" (not valid JSON)
+    # crashes during settings construction, before any custom parsing logic
+    # gets a chance to run. Keeping this as a plain str sidesteps that
+    # entirely. Use the cors_origins_list property below to get a List[str].
+    #
+    # Accepts a comma-separated string ("https://a.com,https://b.com")
+    # or a single origin ("https://a.com"). No JSON array syntax needed.
+    CORS_ORIGINS: str = Field(default="*", env="CORS_ORIGINS")
 
-    @field_validator("CORS_ORIGINS", mode="before")
-    @classmethod
-    def parse_cors_origins(cls, value: Union[str, List[str], None]) -> List[str]:
-        if value is None or value == "":
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Parsed list form of CORS_ORIGINS for use in CORSMiddleware / Socket.IO."""
+        raw = (self.CORS_ORIGINS or "*").strip()
+        if not raw:
             return ["*"]
-        if isinstance(value, list):
-            return value
-        if isinstance(value, str):
-            stripped = value.strip()
-            # Already JSON array syntax — let pydantic's normal JSON parsing handle it
-            if stripped.startswith("["):
-                import json
-                return json.loads(stripped)
-            # Plain comma-separated string, e.g. "https://a.com,https://b.com"
-            return [origin.strip() for origin in stripped.split(",") if origin.strip()]
-        return value
+        if raw.startswith("["):
+            import json
+            try:
+                parsed = json.loads(raw)
+                if isinstance(parsed, list):
+                    return [str(origin).strip() for origin in parsed if str(origin).strip()]
+            except json.JSONDecodeError:
+                pass
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
 
     # Logging
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
