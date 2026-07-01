@@ -276,28 +276,19 @@ npm test
 4. Push to branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🏆 Team
 
-**RIFT ORGANISERS**
-- Team Leader: Saiyam Kumar
 
-## 📞 Support
 
-- GitHub Issues: [Create an issue](https://github.com/your-team/rift-devops-agent/issues)
-- LinkedIn: Tag @RIFT2026
+
+
 
 ## 🔗 Links
 
-- [Live Demo](https://your-deployment-url.com)
-- [Demo Video](https://linkedin.com/your-video)
-- [Documentation](https://your-docs-url.com)
+- [Live Demo](https://rift-frontend-f1v9.onrender.com)
+
 
 ---
 
-<p align="center">
-  Built with ❤️ for RIFT 2026 Hackathon
-</p>
+
