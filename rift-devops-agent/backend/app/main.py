@@ -41,11 +41,7 @@ FRONTEND_URL          = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 # CORS: comma-separated list of allowed origins, e.g.
 # "https://rift-frontend.onrender.com,http://localhost:5173"
-CORS_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
-    if origin.strip()
-]
+CORS_ORIGINS = settings.CORS_ORIGINS
 
 # Where run results / PDFs get written. Point this at a Render persistent
 # disk mount path (e.g. /var/data/results) if you want results to survive
